@@ -27,7 +27,7 @@ import numpy as np
 
 # Basic model parameters as external flags.
 flags = tf.app.flags
-gpu_num = 2
+gpu_num = 0
 #flags.DEFINE_float('learning_rate', 0.0, 'Initial learning rate.')
 flags.DEFINE_integer('max_steps', 5000, 'Number of steps to run trainer.')
 flags.DEFINE_integer('batch_size', 10, 'Batch size.')
@@ -181,7 +181,7 @@ def run_training():
         tower_grads1.append(grads1)
         tower_grads2.append(grads2)
         logits.append(logit)
-    logits = tf.concat(logits,0)
+    logits = tf.concat(logits, 0)
     accuracy = tower_acc(logits, labels_placeholder)
     tf.summary.scalar('accuracy', accuracy)
     grads1 = average_gradients(tower_grads1)
