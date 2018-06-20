@@ -27,10 +27,10 @@ import numpy as np
 
 # Basic model parameters as external flags.
 flags = tf.app.flags
-gpu_num = 0
+gpu_num = 1
 #flags.DEFINE_float('learning_rate', 0.0, 'Initial learning rate.')
 flags.DEFINE_integer('max_steps', 5000, 'Number of steps to run trainer.')
-flags.DEFINE_integer('batch_size', 10, 'Batch size.')
+flags.DEFINE_integer('batch_size', 16, 'Batch size.')
 FLAGS = flags.FLAGS
 MOVING_AVERAGE_DECAY = 0.9999
 model_save_dir = './models'
@@ -162,7 +162,7 @@ def run_training():
       with tf.device('/gpu:%d' % gpu_index):
         
         varlist2 = [ weights['out'],biases['out'] ]
-        varlist1 = list( set(weights.values() + biases.values()) - set(varlist2) )
+        varlist1 = list( set(list(weights.values()) + list(biases.values())) - set(varlist2) )
         logit = c3d_model.inference_c3d(
                         images_placeholder[gpu_index * FLAGS.batch_size:(gpu_index + 1) * FLAGS.batch_size,:,:,:,:],
                         0.5,
@@ -181,6 +181,7 @@ def run_training():
         tower_grads1.append(grads1)
         tower_grads2.append(grads2)
         logits.append(logit)
+
     logits = tf.concat(logits, 0)
     accuracy = tower_acc(logits, labels_placeholder)
     tf.summary.scalar('accuracy', accuracy)
@@ -194,7 +195,7 @@ def run_training():
     null_op = tf.no_op()
 
     # Create a saver for writing training checkpoints.
-    saver = tf.train.Saver(weights.values() + biases.values())
+    saver = tf.train.Saver(set(list(weights.values()) + list(biases.values())))
     init = tf.global_variables_initializer()
 
     # Create a session for running Ops on the Graph.
